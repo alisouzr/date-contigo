@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Date contigo</title>
+    <title>Isso Não É Um Jogo</title>
     <style>
         body {
             display: flex;
@@ -15,6 +15,68 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #333;
             overflow: hidden;
+        }
+
+        /* --- TELA DE LOGIN --- */
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #2c3e50;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            width: 80vw;
+            max-width: 300px;
+            text-align: center;
+        }
+        .login-container h2 {
+            color: white;
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+        .login-container input {
+            padding: 15px;
+            border-radius: 10px;
+            border: none;
+            margin-bottom: 20px;
+            width: 90%;
+            font-size: 16px;
+            text-align: center;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .login-container button {
+            padding: 12px 30px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+            width: 90%;
+        }
+        .login-container button:hover {
+            background-color: #c0392b;
+        }
+        #mensagem-erro {
+            color: #ff7675;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+            font-weight: bold;
+        }
+
+        /* --- TELA DO JOGO --- */
+        .tela-jogo {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
         }
         .card-container {
             width: 85vw;
@@ -52,8 +114,6 @@
             text-align: center;
             transition: background-color 0.3s, border-color 0.3s;
         }
-        
-        /* Frente da Carta (Misteriosa) */
         .card-front {
             background: linear-gradient(135deg, #2c3e50, #1a252f);
             color: white;
@@ -61,43 +121,26 @@
             font-weight: bold;
             border: 4px solid #fff;
         }
-        
-        /* Verso da Carta - Base */
         .card-back {
             transform: rotateY(180deg);
             border: 4px solid #fff;
         }
-
-        /* Temas por Categoria */
-        .theme-confianca {
-            background-color: #f1c40f; 
-            border-color: #f39c12;
-        }
+        .theme-confianca { background-color: #f1c40f; border-color: #f39c12; }
         .theme-confianca .categoria { color: #d35400; }
         .theme-confianca .pergunta { color: #2c3e50; }
 
-        .theme-coragem {
-            background-color: #e74c3c; 
-            border-color: #c0392b;
-        }
+        .theme-coragem { background-color: #e74c3c; border-color: #c0392b; }
         .theme-coragem .categoria { color: #fadbd8; }
         .theme-coragem .pergunta { color: #ffffff; }
 
-        .theme-revelacao {
-            background-color: #8e44ad; 
-            border-color: #732d91;
-        }
+        .theme-revelacao { background-color: #8e44ad; border-color: #732d91; }
         .theme-revelacao .categoria { color: #e8daef; }
         .theme-revelacao .pergunta { color: #ffffff; }
 
-        .theme-construcao {
-            background-color: #2980b9; 
-            border-color: #1f618d;
-        }
+        .theme-construcao { background-color: #2980b9; border-color: #1f618d; }
         .theme-construcao .categoria { color: #d4e6f1; }
         .theme-construcao .pergunta { color: #ffffff; }
 
-        /* Estilos de Texto do Verso */
         .categoria {
             font-size: 16px;
             text-transform: uppercase;
@@ -123,40 +166,73 @@
 </head>
 <body>
 
-    <div class="card-container" onclick="flipCard()">
-        <div class="card" id="myCard">
-            <div class="card-face card-front">
-                <span>Puxar<br>Carta</span>
-                <div class="instrucao">Toque na tela</div>
-            </div>
-            <div class="card-face card-back" id="card-back">
-                <div class="categoria" id="categoria-texto">Categoria</div>
-                <div class="pergunta" id="pergunta-texto">A pergunta aparecerá aqui.</div>
+    <div id="tela-login" class="login-container">
+        <h2>Acesso Restrito 🤫</h2>
+        <input type="password" id="senha-input" placeholder="Digite a senha..." />
+        <button onclick="verificarSenha()">Destravar</button>
+        <p id="mensagem-erro">Senha incorreta. Tente de novo!</p>
+    </div>
+
+    <div id="tela-jogo" class="tela-jogo">
+        <div class="card-container" onclick="flipCard()">
+            <div class="card" id="myCard">
+                <div class="card-face card-front">
+                    <span>Puxar<br>Carta</span>
+                    <div class="instrucao">Toque na tela</div>
+                </div>
+                <div class="card-face card-back" id="card-back">
+                    <div class="categoria" id="categoria-texto">Categoria</div>
+                    <div class="pergunta" id="pergunta-texto">A pergunta aparecerá aqui.</div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        // ==========================================
+        // A senha codificada em Base64 ("dundermifflin")
+        // ==========================================
+        const SENHA_CODIFICADA = "ZHVuZGVybWlmZmxpbg=="; 
+
+        function verificarSenha() {
+            // Pega o valor, tira espaços em branco nas pontas e joga pra minúsculo
+            const input = document.getElementById("senha-input").value.trim().toLowerCase();
+            const erro = document.getElementById("mensagem-erro");
+
+            // Codifica o que o usuário digitou e compara com o hash salvo
+            if (btoa(input) === SENHA_CODIFICADA) {
+                document.getElementById("tela-login").style.display = "none";
+                document.getElementById("tela-jogo").style.display = "flex";
+            } else {
+                erro.style.display = "block";
+            }
+        }
+
+        document.getElementById("senha-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                verificarSenha();
+            }
+        });
+
         const deck = [
-            // ==========================================
             // CONFIANÇA
-            // ==========================================
-            { cat: "CONFIANÇA", text: "Qual música melhora o seu humor?" }, //[cite: 1]
-            { cat: "CONFIANÇA", text: "Se pudesse aprender uma nova habilidade instantaneamente, qual seria?" }, //[cite: 1]
-            { cat: "CONFIANÇA", text: "Qual era o seu desenho animado favorito na infância?" }, //[cite: 1]
-            { cat: "CONFIANÇA", text: "Qual é a sua estação preferida do ano e por quê?" }, //[cite: 1]
-            { cat: "CONFIANÇA", text: "Qual é o seu feriado favorito?" }, //[cite: 1]
-            { cat: "CONFIANÇA", text: "Se tivesse que escolher uma comida para comer pelo resto da vida, qual seria?" }, //[cite: 1]
-            { cat: "CONFIANÇA", text: "Qual é a sua cor favorita e o que ela representa pra você?" }, //[cite: 1]
-            { cat: "CONFIANÇA", text: "Qual foi o último lugar que você visitou?" }, //[cite: 1]
-            { cat: "CONFIANÇA", text: "Você é mais diurno ou noturno?" }, //[cite: 1]
-            { cat: "CONFIANÇA", text: "Prefere ler livros físicos ou digitais?" }, //[cite: 1]
-            { cat: "CONFIANÇA", text: "O que você mais gosta de fazer aos finais de semana?" }, //[cite: 1]
-            { cat: "CONFIANÇA", text: "O que você prefere: praia ou montanha?" }, //[cite: 1]
-            { cat: "CONFIANÇA", text: "Qual é o seu filme ou série favorito?" }, //[cite: 1]
-            { cat: "CONFIANÇA", text: "Se pudesse ter qualquer animal de estimação, qual você teria?" }, //[cite: 1]
-            { cat: "CONFIANÇA", text: "Se pudesse viajar pra qualquer lugar do mundo, pra onde você iria?" }, //[cite: 1]
-            { cat: "CONFIANÇA", text: "Qual foi a última coisa que você aprendeu?" }, //[cite: 1]
+            { cat: "CONFIANÇA", text: "Qual música melhora o seu humor?" },
+            { cat: "CONFIANÇA", text: "Se pudesse aprender uma nova habilidade instantaneamente, qual seria?" },
+            { cat: "CONFIANÇA", text: "Qual era o seu desenho animado favorito na infância?" },
+            { cat: "CONFIANÇA", text: "Qual é a sua estação preferida do ano e por quê?" },
+            { cat: "CONFIANÇA", text: "Qual é o seu feriado favorito?" },
+            { cat: "CONFIANÇA", text: "Se tivesse que escolher uma comida para comer pelo resto da vida, qual seria?" },
+            { cat: "CONFIANÇA", text: "Qual é a sua cor favorita e o que ela representa pra você?" },
+            { cat: "CONFIANÇA", text: "Qual foi o último lugar que você visitou?" },
+            { cat: "CONFIANÇA", text: "Você é mais diurno ou noturno?" },
+            { cat: "CONFIANÇA", text: "Prefere ler livros físicos ou digitais?" },
+            { cat: "CONFIANÇA", text: "O que você mais gosta de fazer aos finais de semana?" },
+            { cat: "CONFIANÇA", text: "O que você prefere: praia ou montanha?" },
+            { cat: "CONFIANÇA", text: "Qual é o seu filme ou série favorito?" },
+            { cat: "CONFIANÇA", text: "Se pudesse ter qualquer animal de estimação, qual você teria?" },
+            { cat: "CONFIANÇA", text: "Se pudesse viajar pra qualquer lugar do mundo, pra onde você iria?" },
+            { cat: "CONFIANÇA", text: "Qual foi a última coisa que você aprendeu?" },
             { cat: "CONFIANÇA", text: "Qual é a sua piada ou cena favorita de uma sitcom que você já assistiu várias vezes?" },
             { cat: "CONFIANÇA", text: "Se você pudesse passar um dia inteiro fotografando qualquer lugar do mundo, para onde iria?" },
             { cat: "CONFIANÇA", text: "Qual é o seu exercício físico ou esporte favorito para espairecer a mente?" },
@@ -168,29 +244,27 @@
             { cat: "CONFIANÇA", text: "Se você pudesse automatizar uma tarefa chata do seu dia a dia num passe de mágica, qual seria?" },
             { cat: "CONFIANÇA", text: "Qual é o seu tipo de museu favorito: de arte, história ou tecnologia?" },
 
-            // ==========================================
             // CORAGEM
-            // ==========================================
-            { cat: "CORAGEM", text: "Qual é a coisa que você tem medo de perder?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "O que é algo mais importante que você aprendeu nos últimos 12 meses?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "Qual é a qualidade que você mais admira nas outras pessoas?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "Como você define o sucesso?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "O que faz você se sentir mais vivo?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "Como você descreveria um dia perfeito?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "Qual é o hábito mais importante que você mantém?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "O que te faz se sentir mais confortável quando se sente triste?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "Você prefere rotina ou espontaneidade?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "Qual é a sua maior fonte de motivação?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "Você prefere resolver problemas sozinho ou com a ajuda de outras pessoas?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "O que você gostaria de ter mais tempo para fazer?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "Você se considera uma pessoa introvertida ou extrovertida?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "Qual foi o maior risco que você já tomou?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "O que você faria se não tivesse medo de falhar?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "Quais são as 3 coisas que você mais valoriza na vida?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "Qual foi a decisão mais difícil que você teve que tomar?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "Você se sente confortável expressando as suas emoções?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "Qual é a melhor lembrança que você tem da sua infância?" }, //[cite: 1]
-            { cat: "CORAGEM", text: "Como você lida com situações de conflitos ou desacordo?" }, //[cite: 1]
+            { cat: "CORAGEM", text: "Qual é a coisa que você tem medo de perder?" },
+            { cat: "CORAGEM", text: "O que é algo mais importante que você aprendeu nos últimos 12 meses?" },
+            { cat: "CORAGEM", text: "Qual é a qualidade que você mais admira nas outras pessoas?" },
+            { cat: "CORAGEM", text: "Como você define o sucesso?" },
+            { cat: "CORAGEM", text: "O que faz você se sentir mais vivo?" },
+            { cat: "CORAGEM", text: "Como você descreveria um dia perfeito?" },
+            { cat: "CORAGEM", text: "Qual é o hábito mais importante que você mantém?" },
+            { cat: "CORAGEM", text: "O que te faz se sentir mais confortável quando se sente triste?" },
+            { cat: "CORAGEM", text: "Você prefere rotina ou espontaneidade?" },
+            { cat: "CORAGEM", text: "Qual é a sua maior fonte de motivação?" },
+            { cat: "CORAGEM", text: "Você prefere resolver problemas sozinho ou com a ajuda de outras pessoas?" },
+            { cat: "CORAGEM", text: "O que você gostaria de ter mais tempo para fazer?" },
+            { cat: "CORAGEM", text: "Você se considera uma pessoa introvertida ou extrovertida?" },
+            { cat: "CORAGEM", text: "Qual foi o maior risco que você já tomou?" },
+            { cat: "CORAGEM", text: "O que você faria se não tivesse medo de falhar?" },
+            { cat: "CORAGEM", text: "Quais são as 3 coisas que você mais valoriza na vida?" },
+            { cat: "CORAGEM", text: "Qual foi a decisão mais difícil que você teve que tomar?" },
+            { cat: "CORAGEM", text: "Você se sente confortável expressando as suas emoções?" },
+            { cat: "CORAGEM", text: "Qual é a melhor lembrança que você tem da sua infância?" },
+            { cat: "CORAGEM", text: "Como você lida com situações de conflitos ou desacordo?" },
             { cat: "CORAGEM", text: "Como você lida com a pressão quando tem uma prova importante ou um prazo grande se aproximando?" },
             { cat: "CORAGEM", text: "Qual é a sua estratégia para não desistir de um exercício quando o corpo já está cansado no treino?" },
             { cat: "CORAGEM", text: "Quando você se depara com um problema complexo no trabalho que parece não ter solução, qual é o seu primeiro passo?" },
@@ -202,25 +276,23 @@
             { cat: "CORAGEM", text: "Como você lida com a síndrome do impostor quando está aprendendo uma tecnologia ou ferramenta completamente nova?" },
             { cat: "CORAGEM", text: "Qual é o seu maior trunfo mental para se manter focado numa rotina intensa de segunda a sexta?" },
 
-            // ==========================================
             // REVELAÇÃO
-            // ==========================================
-            { cat: "REVELAÇÃO", text: "Qual foi a decisão mais difícil que você teve que tomar?" }, //[cite: 1]
-            { cat: "REVELAÇÃO", text: "O que te faz se sentir amado e apreciado?" }, //[cite: 1]
-            { cat: "REVELAÇÃO", text: "O que você considera como um \"lar\"?" }, //[cite: 1]
-            { cat: "REVELAÇÃO", text: "O que você mais valoriza em um relacionamento?" }, //[cite: 1]
-            { cat: "REVELAÇÃO", text: "Qual foi a última vez que você se sentiu realmente vulnerável?" }, //[cite: 1]
-            { cat: "REVELAÇÃO", text: "Qual foi a última vez que você teve o coração partido?" }, //[cite: 1]
-            { cat: "REVELAÇÃO", text: "Você já perdoou alguém, mesmo quando era difícil?" }, //[cite: 1]
-            { cat: "REVELAÇÃO", text: "O que você acredita ser o propósito da vida?" }, //[cite: 1]
-            { cat: "REVELAÇÃO", text: "Qual é o maior sonho que você ainda não realizou?" }, //[cite: 1]
-            { cat: "REVELAÇÃO", text: "O que você acha que é mais difícil para as pessoas entenderem sobre você?" }, //[cite: 1]
-            { cat: "REVELAÇÃO", text: "O que te faz se sentir verdadeiramente grato?" }, //[cite: 1]
-            { cat: "REVELAÇÃO", text: "O que significa para você estar em paz consigo mesmo?" }, //[cite: 1]
-            { cat: "REVELAÇÃO", text: "O que você gostaria que as pessoas entendessem sobre você, mas tem dificuldade?" }, //[cite: 1]
-            { cat: "REVELAÇÃO", text: "Como você acha que as pessoas que você conhece te descreveriam?" }, //[cite: 1]
-            { cat: "REVELAÇÃO", text: "Qual foi o momento que você se sentiu mais conectado a outra pessoa?" }, //[cite: 1]
-            { cat: "REVELAÇÃO", text: "O que você espera deixar como legado para o mundo?" }, //[cite: 1]
+            { cat: "REVELAÇÃO", text: "Qual foi a decisão mais difícil que você teve que tomar?" },
+            { cat: "REVELAÇÃO", text: "O que te faz se sentir amado e apreciado?" },
+            { cat: "REVELAÇÃO", text: "O que você considera como um \"lar\"?" },
+            { cat: "REVELAÇÃO", text: "O que você mais valoriza em um relacionamento?" },
+            { cat: "REVELAÇÃO", text: "Qual foi a última vez que você se sentiu realmente vulnerável?" },
+            { cat: "REVELAÇÃO", text: "Qual foi a última vez que você teve o coração partido?" },
+            { cat: "REVELAÇÃO", text: "Você já perdoou alguém, mesmo quando era difícil?" },
+            { cat: "REVELAÇÃO", text: "O que você acredita ser o propósito da vida?" },
+            { cat: "REVELAÇÃO", text: "Qual é o maior sonho que você ainda não realizou?" },
+            { cat: "REVELAÇÃO", text: "O que você acha que é mais difícil para as pessoas entenderem sobre você?" },
+            { cat: "REVELAÇÃO", text: "O que te faz se sentir verdadeiramente grato?" },
+            { cat: "REVELAÇÃO", text: "O que significa para você estar em paz consigo mesmo?" },
+            { cat: "REVELAÇÃO", text: "O que você gostaria que as pessoas entendessem sobre você, mas tem dificuldade?" },
+            { cat: "REVELAÇÃO", text: "Como você acha que as pessoas que você conhece te descreveriam?" },
+            { cat: "REVELAÇÃO", text: "Qual foi o momento que você se sentiu mais conectado a outra pessoa?" },
+            { cat: "REVELAÇÃO", text: "O que você espera deixar como legado para o mundo?" },
             { cat: "REVELAÇÃO", text: "Qual foi o presente mais criativo ou significativo que você já fez com as próprias mãos para alguém especial?" },
             { cat: "REVELAÇÃO", text: "Como a convivência e a dinâmica com a sua família moldaram a sua visão de mundo?" },
             { cat: "REVELAÇÃO", text: "O que uma cidade rodeada pela força da natureza te ensina sobre o ritmo da vida?" },
@@ -232,21 +304,19 @@
             { cat: "REVELAÇÃO", text: "Qual é a lembrança mais carinhosa que você tem das primeiras vezes em que saiu com a pessoa que você ama?" },
             { cat: "REVELAÇÃO", text: "Como você demonstra cuidado por alguém quando não sabe muito bem que palavras usar?" },
 
-            // ==========================================
             // CONSTRUÇÃO
-            // ==========================================
-            { cat: "CONSTRUÇÃO", text: "Quais são os arrependimentos que você carrega?" }, //[cite: 1]
-            { cat: "CONSTRUÇÃO", text: "Se soubesse que iria morrer em um ano, o que mudaria em sua vida?" }, //[cite: 1]
-            { cat: "CONSTRUÇÃO", text: "O que você acredita ser o seu maior talento ou dom?" }, //[cite: 1]
-            { cat: "CONSTRUÇÃO", text: "O que mais te assusta na ideia de amar alguém profundamente?" }, //[cite: 1]
-            { cat: "CONSTRUÇÃO", text: "Você se sente confortável em aceitar ajuda quando você precisa?" }, //[cite: 1]
-            { cat: "CONSTRUÇÃO", text: "Qual é o papel do perdão na sua vida?" }, //[cite: 1]
-            { cat: "CONSTRUÇÃO", text: "O que te faz sentir que você está vivendo a sua vida de maneira autêntica?" }, //[cite: 1]
-            { cat: "CONSTRUÇÃO", text: "O que você gostaria que fosse diferente no modo como expressa seus sentimentos?" }, //[cite: 1]
-            { cat: "CONSTRUÇÃO", text: "O que significa para você ser vulnerável?" }, //[cite: 1]
-            { cat: "CONSTRUÇÃO", text: "Qual é a memória mais dolorosa que você já teve que enfrentar?" }, //[cite: 1]
-            { cat: "CONSTRUÇÃO", text: "O que você sente que ainda precisa resolver na sua vida?" }, //[cite: 1]
-            { cat: "CONSTRUÇÃO", text: "Qual é a coisa mais corajosa que você já fez?" }, //[cite: 1]
+            { cat: "CONSTRUÇÃO", text: "Quais são os arrependimentos que você carrega?" },
+            { cat: "CONSTRUÇÃO", text: "Se soubesse que iria morrer em um ano, o que mudaria em sua vida?" },
+            { cat: "CONSTRUÇÃO", text: "O que você acredita ser o seu maior talento ou dom?" },
+            { cat: "CONSTRUÇÃO", text: "O que mais te assusta na ideia de amar alguém profundamente?" },
+            { cat: "CONSTRUÇÃO", text: "Você se sente confortável em aceitar ajuda quando você precisa?" },
+            { cat: "CONSTRUÇÃO", text: "Qual é o papel do perdão na sua vida?" },
+            { cat: "CONSTRUÇÃO", text: "O que te faz sentir que você está vivendo a sua vida de maneira autêntica?" },
+            { cat: "CONSTRUÇÃO", text: "O que você gostaria que fosse diferente no modo como expressa seus sentimentos?" },
+            { cat: "CONSTRUÇÃO", text: "O que significa para você ser vulnerável?" },
+            { cat: "CONSTRUÇÃO", text: "Qual é a memória mais dolorosa que você já teve que enfrentar?" },
+            { cat: "CONSTRUÇÃO", text: "O que você sente que ainda precisa resolver na sua vida?" },
+            { cat: "CONSTRUÇÃO", text: "Qual é a coisa mais corajosa que você já fez?" },
             { cat: "CONSTRUÇÃO", text: "Como você organiza a mente quando sente que está sobrecarregado de projetos e responsabilidades?" },
             { cat: "CONSTRUÇÃO", text: "O que você mais aprendeu sobre si mesmo ao transitar da vida de estudante universitário para o mercado de trabalho?" },
             { cat: "CONSTRUÇÃO", text: "Que habilidade comportamental (não técnica) você sente que precisa desenvolver para dar seu próximo grande passo?" },
@@ -268,17 +338,13 @@
             const perguntaEl = document.getElementById('pergunta-texto');
 
             if (!isFlipped) {
-                // 1. Sorteia uma carta
                 const randomCard = deck[Math.floor(Math.random() * deck.length)];
                 
-                // 2. Preenche os textos
                 categoriaEl.innerText = randomCard.cat;
                 perguntaEl.innerText = randomCard.text;
 
-                // 3. Limpa temas antigos
                 cardBack.classList.remove('theme-confianca', 'theme-coragem', 'theme-revelacao', 'theme-construcao');
                 
-                // 4. Aplica o novo tema baseado na categoria
                 if (randomCard.cat === "CONFIANÇA") {
                     cardBack.classList.add('theme-confianca');
                 } else if (randomCard.cat === "CORAGEM") {
@@ -289,10 +355,8 @@
                     cardBack.classList.add('theme-construcao');
                 }
                 
-                // 5. Vira a carta
                 card.classList.add('is-flipped');
             } else {
-                // Desvira a carta
                 card.classList.remove('is-flipped');
             }
             

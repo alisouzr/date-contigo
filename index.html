@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Isso Não É Um Jogo</title>
+    <title>Date contigo</title>
     <style>
         body {
             display: flex;
@@ -167,7 +167,7 @@
 <body>
 
     <div id="tela-login" class="login-container">
-        <h2>Acesso Restrito 🤫</h2>
+        <h2>Acesso Restrito</h2>
         <input type="password" id="senha-input" placeholder="Digite a senha..." />
         <button onclick="verificarSenha()">Destravar</button>
         <p id="mensagem-erro">Senha incorreta. Tente de novo!</p>
@@ -189,9 +189,6 @@
     </div>
 
     <script>
-        // ==========================================
-        // A senha codificada em Base64 ("dundermifflin")
-        // ==========================================
         const SENHA_CODIFICADA = "ZHVuZGVybWlmZmxpbg=="; 
 
         function verificarSenha() {

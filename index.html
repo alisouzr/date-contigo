@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Date contigo</title>
+    <title>Isso Não É Um Jogo</title>
     <style>
         body {
             display: flex;
@@ -77,7 +77,17 @@
             align-items: center;
             width: 100%;
             height: 100%;
+            flex-direction: column;
         }
+        
+        /* Contador de cartas para vocês saberem quantas faltam */
+        .contador {
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 15px;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
         .card-container {
             width: 85vw;
             max-width: 350px;
@@ -167,13 +177,14 @@
 <body>
 
     <div id="tela-login" class="login-container">
-        <h2>Acesso Restrito</h2>
+        <h2>Acesso Restrito 🤫</h2>
         <input type="password" id="senha-input" placeholder="Digite a senha..." />
         <button onclick="verificarSenha()">Destravar</button>
         <p id="mensagem-erro">Senha incorreta. Tente de novo!</p>
     </div>
 
     <div id="tela-jogo" class="tela-jogo">
+        <div class="contador" id="contador-texto">Cartas no baralho: ...</div>
         <div class="card-container" onclick="flipCard()">
             <div class="card" id="myCard">
                 <div class="card-face card-front">
@@ -189,14 +200,12 @@
     </div>
 
     <script>
-        const SENHA_CODIFICADA = "bWFy"; 
+        const SENHA_CODIFICADA = "ZHVuZGVybWlmZmxpbg=="; 
 
         function verificarSenha() {
-            // Pega o valor, tira espaços em branco nas pontas e joga pra minúsculo
             const input = document.getElementById("senha-input").value.trim().toLowerCase();
             const erro = document.getElementById("mensagem-erro");
 
-            // Codifica o que o usuário digitou e compara com o hash salvo
             if (btoa(input) === SENHA_CODIFICADA) {
                 document.getElementById("tela-login").style.display = "none";
                 document.getElementById("tela-jogo").style.display = "flex";
@@ -350,6 +359,36 @@
         ];
 
         let isFlipped = false;
+        let cartasDisponiveis = [];
+
+        // Lógica de Memória (LocalStorage)
+        function inicializarBaralho() {
+            const salvas = localStorage.getItem('cartas_jogo_date');
+            
+            if (salvas) {
+                cartasDisponiveis = JSON.parse(salvas);
+            }
+            
+            // Se for a primeira vez jogando ou se acabaram as cartas
+            if (!salvas || cartasDisponiveis.length === 0) {
+                reiniciarBaralho();
+            }
+            
+            atualizarContador();
+        }
+
+        function reiniciarBaralho() {
+            // Cria um array com os números de 0 até o total de cartas
+            cartasDisponiveis = deck.map((_, index) => index);
+            localStorage.setItem('cartas_jogo_date', JSON.stringify(cartasDisponiveis));
+        }
+
+        function atualizarContador() {
+            document.getElementById('contador-texto').innerText = `Cartas no baralho: ${cartasDisponiveis.length}`;
+        }
+
+        // Chama a função ao carregar o script
+        inicializarBaralho();
 
         function flipCard() {
             const card = document.getElementById('myCard');
@@ -358,8 +397,25 @@
             const perguntaEl = document.getElementById('pergunta-texto');
 
             if (!isFlipped) {
-                const randomCard = deck[Math.floor(Math.random() * deck.length)];
+                // Se as cartas acabarem bem na hora do clique
+                if (cartasDisponiveis.length === 0) {
+                    alert("Vocês já responderam todas as perguntas! O baralho vai ser embaralhado novamente. 🔄");
+                    reiniciarBaralho();
+                }
+
+                // Sorteia um índice aleatório DENTRO das cartas que ainda restam
+                const indexAleatorio = Math.floor(Math.random() * cartasDisponiveis.length);
+                const indexNoDeck = cartasDisponiveis[indexAleatorio];
+                const randomCard = deck[indexNoDeck];
+
+                // Remove a carta que acabou de sair da lista de disponíveis
+                cartasDisponiveis.splice(indexAleatorio, 1);
                 
+                // Salva a nova lista no navegador e atualiza o número na tela
+                localStorage.setItem('cartas_jogo_date', JSON.stringify(cartasDisponiveis));
+                atualizarContador();
+                
+                // Aplica os textos e cores
                 categoriaEl.innerText = randomCard.cat;
                 perguntaEl.innerText = randomCard.text;
 
